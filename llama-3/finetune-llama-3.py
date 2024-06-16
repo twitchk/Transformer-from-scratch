@@ -1,13 +1,15 @@
+# Translated from Chinese to English with G Translate
 # More models at https://huggingface.co/unsloth
+
 import torch
 from unsloth import FastLanguageModel
 from transformers import TextStreamer
 
-max_seq_length = 2048  # 可以自定义任意窗口长度，已根据RoPE编码自动伸缩模型窗口尺寸了。
-dtype = None  # 设置为None自动获取。目前 Float16 支持GPU类型：Tesla T4, V100； Bfloat16 支持GPU类型： Ampere+
-load_in_4bit = True  # 使用4bit量化以减少内存使用。可以设置为False。
+max_seq_length = 2048  #You can customize any window length, and the model window size is automatically scaled according to the RoPE encoding.
+dtype = None  #Set to None to automatically obtain. Currently Float16 supports the following GPU types: Tesla T4, V100; Bfloat16 supports the following GPU types: Ampere+
+load_in_4bit = True  # Use 4-bit quantization to reduce memory usage. Can be set to False.
 
-# 调用 unsloth 预先量化好的4bit模型
+# Call unsloth to pre-quantize the 4-bit model
 fourbit_models = [
     "unsloth/mistral-7b-bnb-4bit",
     "unsloth/mistral-7b-instruct-v0.2-bnb-4bit",
@@ -19,15 +21,15 @@ fourbit_models = [
     "unsloth/llama-3-8b-bnb-4bit",  # [NEW] 15 Trillion token Llama-3
 ]
 
-# 调用 unsloth 预先量化好的4bit模型
+# Call unsloth to pre-quantize the 4-bit model
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name="unsloth/llama-3-8b-bnb-4bit",
     max_seq_length=max_seq_length,
     dtype=dtype,
-    load_in_4bit=load_in_4bit,  # 以4bit加载模型
+    load_in_4bit=load_in_4bit,  # Load the model in 4bit
 )
 
-# 以下是PEFT模型的默认参数，您可以根据需要进行调整。
+# Below are the default parameters for the PEFT model, you can adjust them as needed.
 model = FastLanguageModel.get_peft_model(
     model,
     r=16,  # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
@@ -54,7 +56,7 @@ alpaca_prompt = """Below is an instruction that describes a task, paired with an
 ### Response:
 {}"""
 
-EOS_TOKEN = tokenizer.eos_token  # 必须添加 EOS_TOKEN 这个特殊符号，否则生成会无限循环。。
+EOS_TOKEN = tokenizer.eos_token  # The special symbol EOS_TOKEN must be added, otherwise the generation will loop infinitely.
 
 
 def formatting_prompts_func(examples):
@@ -63,20 +65,20 @@ def formatting_prompts_func(examples):
     outputs = examples["output_zh"]
     texts = []
     for instruction, input, output in zip(instructions, inputs, outputs):
-        text = alpaca_prompt.format(instruction, input, output) + EOS_TOKEN  # 必须添加 EOS_TOKEN 这个特殊符号，否则生成会无限循环。
+        text = alpaca_prompt.format(instruction, input, output) + EOS_TOKEN  # The special symbol EOS_TOKEN must be added, otherwise the generation will loop infinitely.
         texts.append(text)
     return {"text": texts, }
 
 
-# 从数据集中加载数据
+# Loading data from a dataset
 from datasets import load_dataset
 
-# 试验可以用这个数据集：
+# You can use this dataset for experimentation:
 # https://huggingface.co/datasets/silk-road/alpaca-data-gpt4-chinese
 dataset = load_dataset("silk-road/alpaca-data-gpt4-chinese", split="train")
 dataset = dataset.map(formatting_prompts_func, batched=True, )
 
-# 以下是PEFT模型的默认参数，您可以根据需要进行调整。
+# Below are the default parameters for the PEFT model, you can adjust them as needed.
 from trl import SFTTrainer
 from transformers import TrainingArguments
 
@@ -87,12 +89,12 @@ trainer = SFTTrainer(
     dataset_text_field="text",
     max_seq_length=max_seq_length,
     dataset_num_proc=2,
-    packing=False,  # 可以让小上下文窗口训练速度增加5倍以上
+    packing=False,  # It can increase the training speed of small context windows by more than 5 times
     args=TrainingArguments(
         per_device_train_batch_size=2,
         gradient_accumulation_steps=4,
         warmup_steps=5,
-        max_steps=500,  # 微调循环次数
+        max_steps=500,  # Fine-tune the number of cycles
         learning_rate=2e-4,
         fp16=not torch.cuda.is_bf16_supported(),
         bf16=torch.cuda.is_bf16_supported(),
@@ -105,24 +107,24 @@ trainer = SFTTrainer(
     ),
 )
 
-# 训练模型
+# Training the model
 trainer_stats = trainer.train()
 
-# 推理
+# inference
 FastLanguageModel.for_inference(model)  # Enable native 2x faster inference
 inputs = tokenizer(
     [
         alpaca_prompt.format(
-            "你中文回答问题",  # instruction
-            "植物是如何呼吸的？",  # input
+            "You answer questions in Chinese",  # instruction
+            "How do plants breathe?",  # input
             "",  # output - leave this blank for generation!
         )
     ], return_tensors="pt").to("cuda")
 
 
-# 使用Stream流生成文本
+# Generate text using Stream
 text_streamer = TextStreamer(tokenizer)
 _ = model.generate(**inputs, streamer=text_streamer, max_new_tokens=128)
 
-# 储存微调后的模型
-model.save_pretrained("llama-3-zh_lora")  # 保存在本地文件夹 llama-3-zh_lora
+# Saving the fine-tuned model
+model.save_pretrained("llama-3-zh_lora")  # Save in local folder llama-3-zh_lora
