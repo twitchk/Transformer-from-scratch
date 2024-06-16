@@ -1,8 +1,9 @@
+# Translated
 # Chinese fine-tuning llama-3
 
 This directory is used to store the code for Chinese fine-tuning llama-3. It has nothing to do with other directories.
 
-Currently, the fastest and most GPU-saving way to fine-tune llama-3 is through the unsloth method. This method is based on llama-3, and they pre-quantize it to 4 bits to reduce the memory required for fine-tuning.
+Currently, the fastest and most GPU-saving way to fine-tune llama-3 is through the unsloth method. This method is based on llama-3, and they pre-quantized it to 4 bits to reduce the memory required for fine-tuning.
 
 The advantage of this method is that there is no need to retrain the model, just download the pre-trained model and then fine-tune it.
 
