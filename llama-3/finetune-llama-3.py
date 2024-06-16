@@ -6,7 +6,7 @@ import torch
 from unsloth import FastLanguageModel
 from transformers import TextStreamer
 
-max_seq_length = 2048  #You can customize any window length, and the model window size is automatically scaled according to the RoPE encoding.
+max_seq_length = 2048  #You can customize to any window length, and the model window size is automatically scaled according to the RoPE encoding.
 dtype = None  #Set to None to automatically obtain. Currently Float16 supports the following GPU types: Tesla T4, V100; Bfloat16 supports the following GPU types: Ampere+
 load_in_4bit = True  # Use 4-bit quantization to reduce memory usage. Can be set to False.
 
