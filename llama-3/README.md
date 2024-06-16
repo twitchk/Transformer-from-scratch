@@ -1,24 +1,20 @@
-# 中文微调llama-3
+# Chinese fine-tuning llama-3
 
-这个目录是用来存放中文微调llama-3的代码的。与其他目录无关。
+This directory is used to store the code for Chinese fine-tuning llama-3. It has nothing to do with other directories.
 
-目前最省GPU最快的方法微调llama-3就是通过usloth的方法，这个方法是在llama-3的基础上，他们预先量化到了4bit，减少微调时所需的内存。
+Currently, the fastest and most GPU-saving way to fine-tune llama-3 is through the usloth method. This method is based on llama-3, and they pre-quantize it to 4 bits to reduce the memory required for fine-tuning.
 
-这个方法的优点是，不需要重新训练模型，只需要下载预训练模型，然后微调即可。
+The advantage of this method is that there is no need to retrain the model, just download the pre-trained model and then fine-tune it.
 
-这个方法的缺点是，由于量化到了4bit，所以模型的精度会有所下降，但是由于llama-3本身的精度就很高，所以这个下降是可以接受的。
+The disadvantage of this method is that due to the quantization to 4 bits, the accuracy of the model will decrease, but since the accuracy of llama-3 itself is very high, this decrease is acceptable.
 
-#### 安装依赖
+#### Install dependencies
 ```bash
 pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 pip install torch transformers
 pip install --no-deps packaging ninja einops flash-attn xformers trl peft accelerate bitsandbytes
 ```
 
-这里的`flash-attn`很多机器是不支持的，那么可以直接注释掉`packaging ninja einops flash-attn`这几个库，不影响使用。
+Many machines do not support `flash-attn`, so you can directly comment out the `packaging ninja einops flash-attn` libraries without affecting the use.
 
-
-大概率需要一台GPU来运行，如果没有GPU，可以使用Colab，但是Colab的GPU可能会被限制，所以可能会出现OOM的情况。
-
-
-
+It is likely that a GPU is required to run. If there is no GPU, Colab can be used, but the GPU of Colab may be limited, so OOM may occur.
